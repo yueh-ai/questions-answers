@@ -1,10 +1,4 @@
-Of course. You are right to point out the awkward numbering and the opportunity to create a more cohesive, professional, and logically structured document. A complete rewrite allows for a much cleaner integration of all components.
-
-This version has been completely re-architected for clarity and logical flow. It retains all previous information, expands on key concepts, and organizes everything into a more intuitive structure.
-
----
-
-### **Gold-Standard QA Dataset: Final Project Plan**
+### **Gold-Standard QA Dataset: Final Project Plan (Version 3.0)**
 
 #### **1. Vision & Core Objective**
 
@@ -39,9 +33,9 @@ Each item in the dataset will be a JSON object conforming to the following nine-
 - **Definition:** A classification of the expected answer format, reflecting the primary intent of the question.
 - **Purpose:** Allows for evaluating an AI's ability to structure its response correctly.
 - **Supported Types:**
-  - `definitive`: A single, conclusive answer (e.g., a number, name, or specific statement).
+  - **`definitive`**: An answer that provides a single, conclusive resolution to the question. The answer itself may be a simple fact (a number, a name, a date) or a complex, multi-sentence conclusion derived from extensive reasoning. The key is that it resolves the question with a final, unambiguous verdict, rather than providing an open-ended summary or a list of items.
   - `list`: A set of distinct items, formatted with bullets or numbers.
-  - `summary`: A condensed, prose-based overview of a topic.
+  - `summary`: A condensed, prose-based overview of a broad topic.
   - `instructional`: A sequence of actionable steps or a procedure.
   - `contradiction_report`: An explicit statement that the source contains conflicting information, presenting both sides.
   - `no_information`: A clear statement that the information is not available in the source document.
@@ -60,7 +54,7 @@ Each item in the dataset will be a JSON object conforming to the following nine-
 
 **2.5. `reasoning_steps`**
 
-- **Definition:** An explicit, human-written description of the logical steps, calculations, or inferences required to get from the `atomic_facts` to the final `answer`. This field is null if no reasoning is needed (i.e., for direct lookups).
+- **Definition:** An explicit, human-written description of the logical steps, calculations, or inferences required to get from the `atomic_facts` to the final `answer`. This field is null if no reasoning is needed.
 - **Purpose:** Makes the thought process transparent and allows for evaluation of an AI's reasoning capabilities, separate from its recall ability.
 
 **2.6. `opinions_from_answer`**
@@ -71,4 +65,39 @@ Each item in the dataset will be a JSON object conforming to the following nine-
 **2.7. `source_type`**
 
 - **Definition:** The primary category of the content from which the `atomic_facts` were drawn.
-- **Purpose:** Tests the AI's ability to extract information from diverse
+- **Purpose:** Tests the AI's ability to extract information from diverse content formats.
+- **Supported Types:**
+  - `text`: Standard paragraph text.
+  - `table`: A data table. The title, headers, data cells, and footnotes are considered a single holistic unit.
+  - `figure`: A graphical figure like a diagram, flowchart, or schematic. The caption and any embedded text are part of the figure.
+  - `chart`: A data visualization like a bar chart or line graph. The title, legend, axes, and captions are part of the chart.
+
+**2.8. `relative_page` & `chunk_id`**
+
+- **Definition:** `relative_page` is the page number(s) where the source information is located. `chunk_id` is the absolute identifier for the specific data chunk provided to the system.
+- **Purpose:** Provides precise source location for traceability and debugging.
+
+---
+
+#### **3. Methodology & Generation Strategy**
+
+**3.1. The Reconstruction Principle**
+This is the central guiding principle of our dataset creation: **The `atomic_facts` and `reasoning_steps` must contain all the necessary information for a third party to independently reconstruct the `answer` without access to the original document.** This principle guarantees the self-contained verifiability of each data item.
+
+**3.2. Tiered Question Complexity**
+Questions will be intentionally crafted across three tiers of difficulty to test a range of AI capabilities:
+
+- **Tier 1: Pinpoint Retrieval.** Questions that can be answered from a single, explicit location (a sentence, a table row, a data point on a chart). These test foundational factual recall.
+- **Tier 2: Contained Synthesis.** Questions requiring the integration of multiple facts from within a single section or from a single complex visual (e.g., combining two rows in a table, summarizing a paragraph). These test basic synthesis and reasoning.
+- **Tier 3: Cross-Domain Abstraction.** Questions that demand a holistic understanding of the document, requiring the AI to connect information across disparate sections, infer relationships, or identify overarching themes. These test advanced reasoning and abstraction.
+
+---
+
+#### **4. Guiding Protocols & Edge Case Handling**
+
+To ensure consistency and quality, annotators will adhere to the following protocols:
+
+- **Calculations:** For answers requiring math, the `atomic_facts` will contain the raw numerical inputs (e.g., ["Fact 1: Project A cost $5M", "Fact 2: Project B cost $3M"]). The `reasoning_steps` will detail the operation (e.g., ["Step 1: Sum the cost of Project A and Project B ($5M + $3M) to find the total."]).
+- **Contradictions:** When the source presents conflicting information, a question will be specifically designed to expose it. The `answer_type` will be `contradiction_report`, the `answer` will clearly state "The document provides conflicting information...", and the `atomic_facts` will list both conflicting data points.
+- **"No Information" Scenarios:** Questions will be intentionally created about plausible but absent topics. For these, the `answer_type` is `no_information`, the `answer` is a definitive statement like "The document does not contain information on this topic," and the `atomic_facts` and `reasoning_steps` fields will be empty. This directly tests for grounding and prevention of hallucination.
+- **Determining `answer_type`:** If a question could fit multiple types, the classification will be based on the _primary user intent_. For example, "What are the three main risk factors?" has a primary intent of `list`. "Based on the criteria in the report, was the project a success?" has a primary intent of `definitive`, even if the explanation is long.

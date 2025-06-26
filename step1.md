@@ -1,7 +1,3 @@
-Of course. Here is the complete Step 1 document with the simplified classifications, clear definitions, and properly formatted tables for the examples, presented without the final assessment section.
-
----
-
 ### **Step 1: Answer-Type Conformance Check (The Triage)**
 
 #### **Goal**
@@ -90,3 +86,51 @@ Based on the Expected Answer Type, analyze the structure of the Generated Answer
 | :--------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :---------------------------------------------------- |
 | **A. The Good Answer** | "The key stakeholders are: <ul><li>Chandra Patel</li><li>David Chen</li><li>Maria Garcia</li></ul>"                                     | The answer's structure is a list of multiple items, which correctly conforms to the `list` answer type.    | **`conforms`**.                                       |
 | **B. The Bad Answer**  | "Stakeholder management is a critical component of this project's success. The governance philosophy emphasizes clear communication..." | The answer provides a prose summary instead of the requested list of names. This is a structural mismatch. | **`non_conforming_not_a_list`**. **Penalty applied.** |
+
+**Example 1.3: The Summary Test**
+
+- **Context:** A project charter reads: "Project 'Titan' is a multi-year initiative to modernize our legacy billing system. The project will migrate customer records to a new cloud platform and refactor the payment processing module."
+- **Ground Truth:**
+  - `question`: "Provide an overview of Project Titan."
+  - `answer_type`: `summary`
+
+| Scenario               | Generated Answer                                                                                                                                              | LLM Judge's Analysis                                                                                                 | Result                                                   |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------- |
+| **A. The Good Answer** | "Project Titan is an initiative focused on updating the company's old billing system by moving customer data to the cloud and rebuilding the payment module." | The answer is a cohesive block of prose that correctly summarizes the topic, meeting the `summary` type requirement. | **`conforms`**.                                          |
+| **B. The Bad Answer**  | "The project will: <ul><li>Modernize the billing system</li><li>Migrate customer records</li><li>Refactor the payment module</li></ul>"                       | The answer is a bulleted list, not a prose summary. This is a structural violation.                                  | **`non_conforming_not_a_summary`**. **Penalty applied.** |
+
+**Example 1.4: The Instructional Test**
+
+- **Context:** A support article states: "To reset your password, first navigate to the login page. Click the 'Forgot Password?' link. Then, enter your registered email address and submit the form."
+- **Ground Truth:**
+  - `question`: "How do I reset my password?"
+  - `answer_type`: `instructional`
+
+| Scenario               | Generated Answer                                                                                                                           | LLM Judge's Analysis                                                                                                                        | Result                                                 |
+| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------------------- |
+| **A. The Good Answer** | "1. Go to the login page.<br>2. Click 'Forgot Password?'.<br>3. Enter your email and submit."                                              | The answer provides a clear, numbered sequence of actionable steps, which conforms to the `instructional` type.                             | **`conforms`**.                                        |
+| **B. The Bad Answer**  | "The system allows for password resets via an email-based process. This is a standard security feature designed to protect user accounts." | This answer describes the purpose of the feature but does not provide the steps for a user to follow. It is descriptive, not instructional. | **`non_conforming_descriptive`**. **Penalty applied.** |
+
+**Example 1.5: The Contradiction Report Test**
+
+- **Context:** A meeting summary says: "Per the marketing lead, the campaign will launch on May 1st. The engineering lead later noted that due to a technical dependency, the earliest possible launch date is May 7th."
+- **Ground Truth:**
+  - `question`: "When will the campaign launch?"
+  - `answer_type`: `contradiction_report`
+
+| Scenario               | Generated Answer                                                                                                                                 | LLM Judge's Analysis                                                                                                                        | Result                                                                   |
+| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------- |
+| **A. The Good Answer** | "The source contains conflicting information. Marketing states a launch date of May 1st, while engineering states the earliest date is May 7th." | The answer explicitly states that the source contains conflicting information, which is the correct structure for a `contradiction_report`. | **`conforms`**.                                                          |
+| **B. The Bad Answer**  | "The campaign will launch on May 1st."                                                                                                           | The answer picks one side of the conflict without acknowledging the other. It fails to report the contradiction present in the source.      | **`non_conforming_fails_to_report_contradiction`**. **Penalty applied.** |
+
+**Example 1.6: The No Information Test**
+
+- **Context:** A project brief states: "The 'Apollo' project has been approved with a budget of $500,000. The project manager is Sarah Jenkins."
+- **Ground Truth:**
+  - `question`: "What is the timeline for the 'Apollo' project?"
+  - `answer_type`: `no_information`
+
+| Scenario               | Generated Answer                                                                 | LLM Judge's Analysis                                                                                                  | Result                                                  |
+| :--------------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------ |
+| **A. The Good Answer** | "The provided document does not contain information about the project timeline." | The answer correctly states that the requested information is not available, conforming to the `no_information` type. | **`conforms`**.                                         |
+| **B. The Bad Answer**  | "The 'Apollo' project is scheduled to be completed in six months."               | The answer invents a timeline that is not present in the source. This is a hallucination.                             | **`non_conforming_hallucinates`**. **Penalty applied.** |

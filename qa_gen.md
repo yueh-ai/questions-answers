@@ -1,51 +1,74 @@
-### **Final Consolidated Plan**
+Of course. You are right to point out the awkward numbering and the opportunity to create a more cohesive, professional, and logically structured document. A complete rewrite allows for a much cleaner integration of all components.
 
-#### **1. Core Objective**
+This version has been completely re-architected for clarity and logical flow. It retains all previous information, expands on key concepts, and organizes everything into a more intuitive structure.
 
-To create a high-quality, structured, ground-truth dataset of Question-Answer pairs from a 200-page PDF. This dataset will serve as a robust benchmark to evaluate the capabilities of other AI systems in the following areas:
+---
 
-- **Factual Recall:** Retrieving correct and relevant information.
-- **Information Synthesis:** Integrating multiple pieces of information.
-- **Logical Reasoning:** Performing calculations or deductions.
-- **Nuance Comprehension:** Handling ambiguity, contradictions, and attributed opinions.
+### **Gold-Standard QA Dataset: Final Project Plan**
 
-#### **2. Finalized Output Structure**
+#### **1. Vision & Core Objective**
 
-For each generated item, we will provide the following eight fields:
+Our objective is to engineer a gold-standard, ground-truth dataset of Question-Answer pairs derived from a 200-page source document. This dataset is not merely a collection of facts; it is a sophisticated diagnostic tool designed to rigorously benchmark and evaluate the capabilities of advanced AI systems.
 
-- **`question`**: The question posed to the system.
-- **`answer`**: The ideal, human-crafted answer, which is comprehensive and well-grounded.
-- **`atomic_facts`**: A list of the smallest, verifiable units of information from the source, sufficient to reconstruct the answer. (Detailed definition in Section 3).
-- **`reasoning_steps`**: The logical steps or calculations required to bridge the `atomic_facts` to the `answer`.
-- **`opinions_from_answer`**: Interpretive judgments or conclusions present in our `answer` that are not explicitly stated in the source.
-- **`source_type`**: The category of the content from which the information was primarily drawn, defined as follows:
-  - **`text`**: Standard paragraph text.
-  - **`table`**: Information extracted from a table structure. We treat the table's **title, footnotes, and the data within it as a single, holistic unit.**
-  - **`figure`**: Information from a graphical figure (like a diagram, flowchart, or schematic). The **caption and any embedded text are considered part of the figure.**
-  - **`chart`**: Information from a data visualization (like a bar chart, pie chart, or line graph). Its **title, legend, and captions are all part of the chart.**
-- **`relative_page`**: The page number(s) within the current chunk where the source information is located.
-- **`chunk_id`**: Absolute identifier for the chunk.
+The evaluation will focus on the following core competencies:
 
-#### **3. Detailed Definition of `atomic_facts`**
+- **Precision Recall:** The ability to retrieve specific, correct, and relevant information.
+- **Multi-Hop Synthesis:** The ability to connect and integrate information from multiple locations or formats (e.g., text and a table).
+- **Analytical Reasoning:** The ability to perform logical deductions, calculations, and inferences based on the provided context.
+- **Nuance & Ambiguity Comprehension:** The ability to identify and correctly handle contradictions, attributed opinions, and subtleties within the source text.
+- **Intent-Driven Formatting:** The ability to understand the user's intent and structure the answer in the most appropriate format (e.g., list, summary, direct answer).
 
-An `atomic_fact` is a discrete, verifiable statement from the source document, falling into one of these six categories:
+---
 
-1.  **Quantitative & Qualitative Data**
-2.  **Declarative Statements of State or Event**
-3.  **Causal and Relational Statements**
-4.  **Prescriptive Statements (Rules, Policies, Requirements)**
-5.  **Definitions and Terminology**
-6.  **Attributed Statements (Opinions, Beliefs, Quotes)**
+#### **2. The Ground-Truth Data Schema**
 
-#### **4. Question Difficulty Levels**
+Each item in the dataset will be a JSON object conforming to the following nine-field schema. This structure ensures that every question-answer pair is transparent, verifiable, and rich with metadata for analysis.
 
-- **Level 1 - Direct Factual Lookup:** Direct search-and-locate from a single, explicit location.
-- **Level 2 - Contained Synthesis & Calculation:** Requires integration of information from several sentences or paragraphs within a single section.
-- **Level 3 - Holistic Deduction:** Requires holistic understanding, abstraction, and reasoning across multiple sections or the entire document.
+**2.1. `question`**
 
-#### **5. Guiding Principles & Edge Case Handling**
+- **Definition:** The natural language question posed to the AI system.
+- **Purpose:** Simulates a real-world user query.
 
-- **Calculations:** For answers requiring calculation, `atomic_facts` will contain the raw inputs, and `reasoning_steps` will detail the logic.
-- **Contradictions:** If the document presents conflicting data, the `answer` will explicitly state the contradiction, and the `atomic_facts` will list both conflicting data points.
-- **Information in Visuals:** Information from tables, charts, and figures will be treated as a first-class source, adhering to the holistic definitions specified in Section 2 under `source_type`.
-- **The Reconstruction Principle:** The list of `atomic_facts` must be sufficient for a third party to independently reconstruct and validate the `answer` without reading the source document.
+**2.2. `answer`**
+
+- **Definition:** The ideal, human-crafted answer. It is comprehensive, well-written, and directly addresses the `question`.
+- **Purpose:** Serves as the "gold standard" against which the AI's generated response is compared.
+
+**2.3. `answer_type`**
+
+- **Definition:** A classification of the expected answer format, reflecting the primary intent of the question.
+- **Purpose:** Allows for evaluating an AI's ability to structure its response correctly.
+- **Supported Types:**
+  - `definitive`: A single, conclusive answer (e.g., a number, name, or specific statement).
+  - `list`: A set of distinct items, formatted with bullets or numbers.
+  - `summary`: A condensed, prose-based overview of a topic.
+  - `instructional`: A sequence of actionable steps or a procedure.
+  - `contradiction_report`: An explicit statement that the source contains conflicting information, presenting both sides.
+  - `no_information`: A clear statement that the information is not available in the source document.
+
+**2.4. `atomic_facts`**
+
+- **Definition:** A list of the smallest, discrete, and verifiable units of information extracted directly from the source document. The collection of these facts must be sufficient to independently reconstruct the `answer`.
+- **Purpose:** Provides a transparent, verifiable chain of evidence from the source to the answer, enabling programmatic validation.
+- **Categories of Atomic Facts:**
+  1.  **Quantitative & Qualitative Data** (e.g., "Revenue was $10M," "The casing is red.")
+  2.  **Declarative Statements of State or Event** (e.g., "The project was completed in Q2.")
+  3.  **Causal and Relational Statements** (e.g., "Increased marketing led to a 15% rise in sales.")
+  4.  **Prescriptive Statements (Rules, Policies)** (e.g., "All reports must be submitted by Friday.")
+  5.  **Definitions and Terminology** (e.g., "'High-Risk' is defined as any project over $1M.")
+  6.  **Attributed Statements (Opinions, Quotes)** (e.g., "The CEO stated, 'The future is bright.'")
+
+**2.5. `reasoning_steps`**
+
+- **Definition:** An explicit, human-written description of the logical steps, calculations, or inferences required to get from the `atomic_facts` to the final `answer`. This field is null if no reasoning is needed (i.e., for direct lookups).
+- **Purpose:** Makes the thought process transparent and allows for evaluation of an AI's reasoning capabilities, separate from its recall ability.
+
+**2.6. `opinions_from_answer`**
+
+- **Definition:** A list of any interpretive judgments, conclusions, or syntheses present in the `answer` that are not explicitly stated as a single fact in the source. This often overlaps with `reasoning_steps` but focuses on the interpretive leap.
+- **Purpose:** Isolates subjective or synthesized elements of the answer for nuanced evaluation.
+
+**2.7. `source_type`**
+
+- **Definition:** The primary category of the content from which the `atomic_facts` were drawn.
+- **Purpose:** Tests the AI's ability to extract information from diverse
